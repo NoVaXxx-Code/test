@@ -1,6 +1,4 @@
 import tkinter as tk
-import time
-import threading
 import random
 
 # Lyrics
@@ -98,24 +96,31 @@ def glow_effect():
         root.after(300, cycle, i+1)
     cycle()
 
-def typewriter_effect():
-    def run():
-        for line, char_delay, line_delay in lyrics:
-            text = ""
-            for char in line:
-                text += char
-                label.config(text=text)
-                root.update()
-                time.sleep(char_delay)
-            time.sleep(line_delay)
-            label.config(text="")
-            root.update()
-    threading.Thread(target=run, daemon=True).start()
+def typewriter_effect(line_index=0, character_index=0):
+    """Type each lyric without blocking Tkinter's event loop."""
+    line, character_delay, line_delay = lyrics[line_index]
 
-# Call
+    if character_index < len(line):
+        label.config(text=line[:character_index + 1])
+        root.after(
+            max(1, round(character_delay * 1000)),
+            typewriter_effect,
+            line_index,
+            character_index + 1,
+        )
+        return
+
+    label.config(text="")
+    next_line = (line_index + 1) % len(lyrics)
+    root.after(
+        max(1, round(line_delay * 1000)),
+        typewriter_effect,
+        next_line,
+        0,
+    )
+
 create_particles(150)
 
-# Call
 animate_particles()
 twinkle_particles()
 glow_effect()
